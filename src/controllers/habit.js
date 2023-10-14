@@ -54,6 +54,20 @@ export const postHabit = async (req, res) => {
     });
     await newBet.save();
 
+    // 日期處理 (create array for dateCheck)
+    let beginDatetime = new Date();
+    const endDate = new Date(`${dueDate}`);
+
+    const dateList = [];
+    while (beginDatetime <= endDate) {
+      // key => date, value => false
+      const dateKey = beginDatetime.toISOString().split('T')[0]; // 將日期轉換為 "YYYY-MM-DD" 格式
+      dateList.push({ date: dateKey, checked: false });
+    
+      // 增加一天
+      beginDatetime.setDate(beginDatetime.getDate() + 1);
+    }
+
     // create Habit with the bet above
     const newHabit = {
       habitId: new mongoose.Types.ObjectId(),
@@ -62,7 +76,7 @@ export const postHabit = async (req, res) => {
       createAt: new Date(),
       dueDate: dueDate,
       status: 'uncheck',
-      dateCheck: [],
+      dateCheck: dateList,
       habitTitle: habitTitle,
     }
     await HabitSchema.create(newHabit);
@@ -93,10 +107,16 @@ export const putHabit = async (req, res) => {
       return res.status(400).json({ error: 'Status is not "uncheck"' });
     }
 
-    habit.status = 'checked';
-    await habit.save();
+    const currentDate = new Date().toISOString().split('T')[0];
+    // 在 habit.dateCheck 中查詢今天
+    const foundIndex = habit.dateCheck.findIndex((entry) => entry.date === currentDate);
 
-    res.status(200).json({message: 'Checked'});
+    if (foundIndex !== -1) {
+      habit.dateCheck[foundIndex].checked = true;
+    }
+    habit.status = "checked";
+    await habit.save();
+    res.status(200).json({message: `Checked ${currentDate}`});
   } catch (error) {
     genericErrorHandler(error, res);
   }

@@ -2,6 +2,8 @@ import bodyParser from "body-parser";
 import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
+import swaggerUi from "swagger-ui-express";
+import swaggerJSDoc from "swagger-jsdoc";
 
 import HabitRoutes from "./routes/habits.js";
 import BetRoutes from "./routes/bets.js";
@@ -13,18 +15,32 @@ const app = express()
 app.use(bodyParser.json());
 app.use(cors());
 
+const options = {
+  definition: {
+    openapi: "3.0.0",
+    info: {
+      title: "Your API",
+      version: "1.0.0",
+    },
+  },
+  apis: ["./src/routes/*.js"], // 指定包含路由定义的文件路径
+};
+
+const swaggerSpec = swaggerJSDoc(options);
 // Routes
+app.use("/api-docs", swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 app.use("/api/habit", HabitRoutes);
 app.use("/api/bet", BetRoutes);
 app.use("/api/user", UserRoutes);
 
-const options = {
+// Connect to MongoDB
+const mongooseOptions = {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 }
-// Connect to MongoDB
+
 mongoose
-  .connect(env.MONGO_URL, options)
+  .connect(env.MONGO_URL, mongooseOptions)
   .then(() => {
     app.listen(env.PORT, () =>
       console.log(`Server running on port http://localhost:${env.PORT}`),

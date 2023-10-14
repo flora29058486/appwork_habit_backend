@@ -1,6 +1,13 @@
 import mongoose, { Schema } from "mongoose";
 const ObjectId = Schema.Types.ObjectId;
 
+const DateCheckSchema = new mongoose.Schema(
+  {
+    date: String,
+    checked: Boolean
+  }
+);
+
 const HabitSchema = new mongoose.Schema(
   {
     habitId: {
@@ -27,16 +34,7 @@ const HabitSchema = new mongoose.Schema(
       required: true,
     },
     dateCheck: [
-      {
-        date: {
-          type: Date,
-          required: true,
-        },
-        checked: {
-          type: Boolean,
-          required: true,
-        },
-      },
+      DateCheckSchema,
     ],
     habitTitle: {
       type: String,
